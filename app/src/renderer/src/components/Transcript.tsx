@@ -18,6 +18,9 @@ import { followTarget, inView } from '../../../shared/follow'
 import { afterFinal, joinWords } from '../../../shared/liveWords'
 import { InlineError } from './InlineError'
 
+/** how long a click waits to play, in case it is the first of a double-click (which edits the line) */
+const DOUBLE_CLICK_MS = 260
+
 type Line = Omit<Segment, 'id'> & { id?: number }
 const key = (l: { track: string; startMs: number }) => `${l.track}:${l.startMs}`
 /** this close to the bottom still counts as reading the latest lines */
@@ -186,6 +189,7 @@ const Row = memo(function Row({ line: l, focused, name, query, playing, playable
       tabIndex={playable || editable ? (focusable ? 0 : -1) : undefined} onFocus={(e) => { if (e.target === e.currentTarget) onFocusLine(k) }}
       aria-keyshortcuts={editable && !editing ? 'F2' : undefined}
       onClick={(e) => onPlay(l, e)} onDoubleClick={editable && !editing ? () => onEdit(k) : undefined}
+      onContextMenu={editable && !editing ? (e) => { e.preventDefault(); onEdit(k) } : undefined}
       title={editing ? undefined : edited ? `${time} · ${t('Edited. Heard as “{text}”', { text: l.originalText! })}` : time}
       data-hidden={l.hidden || undefined} data-focused={focused || undefined} data-edited={edited || undefined} data-editing={editing || undefined}
       className={`line ${arrived === 'fade' ? 'line-in' : arrived === 'settle' ? 'line-settle' : ''} ${playable && !editing ? 'line-playable cursor-pointer' : ''}`}>
@@ -343,17 +347,25 @@ export function Transcript({ id, recording, inline = false, active = true, onClo
 
   const playableRef = useRef(playable)
   playableRef.current = playable
+  /** a click on a line that can be edited plays after a double-click would have come: a double-click edits, never plays */
+  const pendingPlay = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const editableRef = useRef(false)
+  useEffect(() => () => clearTimeout(pendingPlay.current), [])
   const onPlay = useCallback((l: Line, e: MouseEvent) => {
     // a button, or text being selected to copy, is not a request to play
     if (!playableRef.current || (e.target as HTMLElement).closest('button, input, form, [contenteditable]') || window.getSelection()?.toString()) return
-    follow()
-    player.current?.playFrom(l.startMs)
+    clearTimeout(pendingPlay.current)
+    if (e.detail > 1) return
+    const play = () => { follow(); player.current?.playFrom(l.startMs) }
+    if (editableRef.current && e.detail === 1) pendingPlay.current = setTimeout(play, DOUBLE_CLICK_MS)
+    else play()
   }, [follow])
 
   const shownLines = useMemo(() => filterLines(lines, query), [lines, query])
 
   // a line corrected by hand (speech recognition misheard it): never while recording, its lines still change then
   const editable = loaded && !recording
+  editableRef.current = editable
   const [editingKey, setEditingKey] = useState<string>()
   const [editFailed, setEditFailed] = useState(false)
   useEffect(() => { setEditingKey(undefined); setEditFailed(false) }, [id, recording])
@@ -413,7 +425,7 @@ export function Transcript({ id, recording, inline = false, active = true, onClo
     if (i < 0) return
     const line = shownLines[i]
     // F2 corrects the line (Enter too, where Enter doesn't play it)
-    if (editable && line.id != null && !line.hidden && (e.key === 'F2' || (!playable && e.key === 'Enter'))) { e.preventDefault(); setEditingKey(key(line)); return }
+    if (editable && line.id != null && !line.hidden && (e.key === 'F2' || e.key === 'ContextMenu' || (!playable && e.key === 'Enter'))) { e.preventDefault(); setEditingKey(key(line)); return }
     if (!playable && e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return
     const go = (j: number) => { const next = rowOf(key(shownLines[Math.max(0, Math.min(shownLines.length - 1, j))])); next?.focus(); next?.scrollIntoView({ block: 'nearest' }) }
     if (e.key === 'ArrowDown') { e.preventDefault(); go(i + 1) }
@@ -474,7 +486,7 @@ export function Transcript({ id, recording, inline = false, active = true, onClo
                         <Fragment key={k}>{i > 0 && ' '}
                           <Row line={x} focused={k === focusedKey} name={who(x)} query={typed}
                             playing={k === shownKey} playable={playable} focusable={k === tabKey} arrived={live.current.has(k) ? (previewed(x) ? 'settle' : 'fade') : null} onPlay={onPlay} onFocusLine={setFocusKey}
-                            editable={editable && x.id != null && !x.hidden} editing={editable && k === editingKey} onEdit={setEditingKey} onSave={onSave} onCancel={endEdit} onRestore={onRestore} />
+                            editable={editable && x.id != null && !x.hidden} editing={editable && k === editingKey} onEdit={(k: string) => { clearTimeout(pendingPlay.current); setEditingKey(k) }} onSave={onSave} onCancel={endEdit} onRestore={onRestore} />
                         </Fragment>
                       )
                     })}
