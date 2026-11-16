@@ -643,5 +643,9 @@
   "Clear": "Hapus",
   "Reading {title} {others}…": "Membaca {title} {others}…",
   "Searched {name}": "Dicari di {name}",
-  "Searched all meetings": "Dicari di semua rapat"
+  "Searched all meetings": "Dicari di semua rapat",
+  "Edit line": "Edit baris",
+  "Restore original": "Pulihkan aslinya",
+  "Edited. Heard as “{text}”": "Diedit. Terdengar sebagai “{text}”",
+  "Transcript corrected. Regenerate summary?": "Transkrip dikoreksi. Buat ulang ringkasan?"
 }

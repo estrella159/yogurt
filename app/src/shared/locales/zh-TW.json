@@ -643,5 +643,9 @@
   "Clear": "清除",
   "Reading {title} {others}…": "正在讀取「{title}」{others}…",
   "Searched {name}": "已搜尋{name}",
-  "Searched all meetings": "已搜尋所有會議"
+  "Searched all meetings": "已搜尋所有會議",
+  "Edit line": "編輯此行",
+  "Restore original": "還原原文",
+  "Edited. Heard as “{text}”": "已編輯。辨識為「{text}」",
+  "Transcript corrected. Regenerate summary?": "逐字稿已更正。要重新產生摘要嗎？"
 }

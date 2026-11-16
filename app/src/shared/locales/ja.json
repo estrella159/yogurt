@@ -643,5 +643,9 @@
   "Clear": "クリア",
   "Reading {title} {others}…": "「{title}」{others}を読んでいます…",
   "Searched {name}": "{name}を検索",
-  "Searched all meetings": "すべての会議を検索"
+  "Searched all meetings": "すべての会議を検索",
+  "Edit line": "行を編集",
+  "Restore original": "元の文字起こしに戻す",
+  "Edited. Heard as “{text}”": "編集済み。元の認識:「{text}」",
+  "Transcript corrected. Regenerate summary?": "文字起こしが修正されました。要約を作り直しますか？"
 }

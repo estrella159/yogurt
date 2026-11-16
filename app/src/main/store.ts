@@ -46,7 +46,9 @@ export type Segment = { id: number; meetingId: string; track: 'me' | 'them'; sta
   /** High-confidence echo: retained for recovery, omitted from inline disclosures. */
   echoConfident?: boolean
   /** Shared display-only palette index, supplied by the transcript bridge. */
-  speakerColor?: number }
+  speakerColor?: number
+  /** the person corrected this line: what speech recognition heard, kept so it can be restored */
+  originalText?: string }
 export type Notes = { mine: string; enhanced: string | null; edited: boolean }
 
 const toMeeting = (r: Row): Meeting => ({
@@ -69,7 +71,19 @@ const toSegment = (r: Row): Segment => ({
   id: Number(r.id), meetingId: String(r.meeting_id), track: r.track as Segment['track'], startMs: Number(r.start_ms), endMs: Number(r.end_ms),
   text: String(r.text), speaker: r.speaker == null ? null : String(r.speaker), hidden: Number(r.hidden ?? 0) === 1,
   ...(Number(r.echo_confident ?? 0) === 1 ? { echoConfident: true } : {}),
+  ...(r.original_text == null ? {} : { originalText: String(r.original_text) }),
 })
+
+/** a corrected line: at most this many characters */
+export const SEGMENT_TEXT_MAX = 2000
+/** what an edit to a line did; recording: not while the meeting records (its lines still change) */
+export type SegmentEdit = 'saved' | 'unchanged' | 'invalid' | 'missing' | 'recording'
+/** a line as typed: one line of text, spaces tidied; blank or too long is no edit */
+export const segmentText = (raw: unknown): string | undefined => {
+  if (typeof raw !== 'string') return undefined
+  const text = raw.replace(/\s+/g, ' ').trim()
+  return text && text.length <= SEGMENT_TEXT_MAX ? text : undefined
+}
 
 /** Chinese, Japanese and Korean letters: searched by pairs of characters (they have NOFOLDERS_P between words) */
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u
@@ -224,6 +238,11 @@ export class Store {
     if (!(this.db.prepare('PRAGMA table_info(notes)').all() as Row[]).some((r) => r.name === 'written_with')) this.db.exec('ALTER TABLE notes ADD COLUMN written_with TEXT')
     const segmentCols = (this.db.prepare('PRAGMA table_info(segments)').all() as Row[]).map((r) => String(r.name))
     if (!segmentCols.includes('hidden')) this.db.exec('ALTER TABLE segments ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0')
+    // a line the person corrected: what was heard (null: never edited), and when it last changed by hand
+    if (!segmentCols.includes('original_text')) this.db.exec('ALTER TABLE segments ADD COLUMN original_text TEXT')
+    if (!segmentCols.includes('edited_at')) this.db.exec('ALTER TABLE segments ADD COLUMN edited_at INTEGER')
+    // the latest hand edit of the transcript the notes were written from (null: none yet)
+    if (!(this.db.prepare('PRAGMA table_info(notes)').all() as Row[]).some((r) => r.name === 'transcript_at')) this.db.exec('ALTER TABLE notes ADD COLUMN transcript_at INTEGER')
     if (!segmentCols.includes('echo_confident')) {
       this.db.exec('BEGIN')
       try {
@@ -448,6 +467,45 @@ export class Store {
       for (const s of list) up.run(s.speaker, s.id)
       this.db.exec('COMMIT')
     } catch (e) { this.db.exec('ROLLBACK'); throw e }
+  }
+
+  /**
+   * The person corrects a line (speech recognition misheard it). The first text heard is kept once, so it can be
+   * restored; an edit back to it is no edit at all. Search follows by the segments_au trigger. Never while recording.
+   */
+  editSegment(meetingId: string, segmentId: number, raw: unknown): SegmentEdit {
+    const text = segmentText(raw)
+    if (text === undefined || !Number.isSafeInteger(segmentId)) return 'invalid'
+    const m = this.db.prepare('SELECT state, trashed_at FROM meetings WHERE id = ?').get(meetingId) as Row | undefined
+    const r = this.db.prepare('SELECT text, original_text, hidden FROM segments WHERE id = ? AND meeting_id = ?').get(segmentId, meetingId) as Row | undefined
+    if (!m || m.trashed_at != null || !r || Number(r.hidden) === 1) return 'missing'
+    if (m.state === 'recording') return 'recording'
+    if (text === String(r.text)) return 'unchanged'
+    const original = r.original_text == null ? String(r.text) : String(r.original_text)
+    this.db.prepare('UPDATE segments SET text = ?, original_text = ?, edited_at = ? WHERE id = ?').run(text, text === original ? null : original, this.editStamp(meetingId), segmentId)
+    return 'saved'
+  }
+  /** The line as speech recognition heard it again */
+  restoreSegment(meetingId: string, segmentId: number): SegmentEdit {
+    if (!Number.isSafeInteger(segmentId)) return 'invalid'
+    const r = this.db.prepare('SELECT original_text FROM segments WHERE id = ? AND meeting_id = ? AND hidden = 0').get(segmentId, meetingId) as Row | undefined
+    if (!r) return 'missing'
+    if (r.original_text == null) return 'unchanged'
+    return this.editSegment(meetingId, segmentId, String(r.original_text))
+  }
+  /** when the meeting's transcript was last changed by hand (0: never); each change is later than the one before */
+  transcriptEditedAt(meetingId: string): number {
+    const r = this.db.prepare('SELECT max(edited_at) AS at FROM segments WHERE meeting_id = ?').get(meetingId) as Row | undefined
+    return Number(r?.at ?? 0)
+  }
+  private editStamp(meetingId: string) { return Math.max(Date.now(), this.transcriptEditedAt(meetingId) + 1) }
+  /** The transcript's last hand edit the enhanced notes were written from: later edits make them out of date */
+  notesTranscriptAt(meetingId: string): number {
+    const r = this.db.prepare('SELECT transcript_at FROM notes WHERE meeting_id = ?').get(meetingId) as Row | undefined
+    return Number(r?.transcript_at ?? 0)
+  }
+  setNotesTranscriptAt(meetingId: string, at: number) {
+    this.db.prepare('UPDATE notes SET transcript_at = ? WHERE meeting_id = ?').run(at, meetingId)
   }
 
   /** edited: the person changed the enhanced notes since they were written */

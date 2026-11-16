@@ -721,5 +721,9 @@
   "Clear": "Wyczyść",
   "Reading {title} {others}…": "Czytanie spotkań „{title}” {others}…",
   "Searched {name}": "Przeszukano {name}",
-  "Searched all meetings": "Przeszukano wszystkie spotkania"
+  "Searched all meetings": "Przeszukano wszystkie spotkania",
+  "Edit line": "Edytuj wiersz",
+  "Restore original": "Przywróć oryginał",
+  "Edited. Heard as “{text}”": "Zmieniono. Rozpoznano jako „{text}”",
+  "Transcript corrected. Regenerate summary?": "Transkrypcja poprawiona. Utworzyć podsumowanie od nowa?"
 }

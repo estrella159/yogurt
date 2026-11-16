@@ -643,5 +643,9 @@
   "Clear": "ล้าง",
   "Reading {title} {others}…": "กำลังอ่าน {title} {others}…",
   "Searched {name}": "ค้นหาใน {name} แล้ว",
-  "Searched all meetings": "ค้นหาในการประชุมทั้งหมดแล้ว"
+  "Searched all meetings": "ค้นหาในการประชุมทั้งหมดแล้ว",
+  "Edit line": "แก้ไขบรรทัด",
+  "Restore original": "กู้คืนต้นฉบับ",
+  "Edited. Heard as “{text}”": "แก้ไขแล้ว ได้ยินเป็น “{text}”",
+  "Transcript corrected. Regenerate summary?": "แก้ไขคำถอดความแล้ว สร้างสรุปใหม่ไหม"
 }

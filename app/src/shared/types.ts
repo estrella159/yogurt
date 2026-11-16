@@ -2,7 +2,7 @@ import type { WidgetLayout, WidgetSurface } from './widgetMorph'
 import type { ContextChip, ContextTarget } from './askContext'
 import type { FolderAppearance } from './folderAppearance'
 import type { LiveWord } from './liveWords'
-import type { Meeting, MeetingCard as StoredMeetingCard, Person, Segment, SnippetPart, Folder } from '../main/store'
+import type { Meeting, MeetingCard as StoredMeetingCard, Person, Segment, SegmentEdit, SnippetPart, Folder } from '../main/store'
 import type { CalEvent, CalendarSource, CalendarStatus } from '../main/calendar'
 import type { Access, PermissionKind, PermissionStatus } from '../main/permissions'
 import type { Capabilities } from './platform'
@@ -110,6 +110,10 @@ export type YogurtApi = {
     get(meetingId: string, o?: { hidden?: boolean; last?: number }): Promise<Segment[]>
     /** brings hidden lines back: the ones given, or all of the meeting's */
     restore(meetingId: string, ids?: number[]): Promise<void>
+    /** a line corrected by hand (not while the meeting records); the first text heard is kept for restoreLine */
+    edit(meetingId: string, segmentId: number, text: string): Promise<SegmentEdit>
+    /** a corrected line back to what speech recognition heard */
+    restoreLine(meetingId: string, segmentId: number): Promise<SegmentEdit>
     /** each line as it is saved (a me line a couple of seconds after it was said); returns the way to stop listening */
     onSegment(cb: (s: Omit<Segment, 'id'>) => void): () => void
     /** the meeting's saved lines changed (names from the call after it, echo lines shown again): read them again with get */
@@ -336,7 +340,7 @@ export type SetupState = {
   notesRestoreEtaSec?: number
 }
 
-export type { Meeting, Person, Segment, SnippetPart, Folder } from '../main/store'
+export type { Meeting, Person, Segment, SegmentEdit, SnippetPart, Folder } from '../main/store'
 export type { CalEvent, CalendarSource, CalendarStatus } from '../main/calendar'
 /** Calendar occurrence with its saved note, if one exists. No inferred or sample meetings. */
 export type AgendaEvent = CalEvent & { note?: { id: string; state: Meeting['state'] } }
@@ -360,6 +364,8 @@ export type NoteView = {
   step?: 'loading'
   /** the people at the meeting changed after these edited notes were written, so they may be out of date */
   peopleChanged: boolean
+  /** lines of the transcript were corrected after these notes were written, so they may be out of date */
+  transcriptChanged?: boolean
   /** the notes were just written again (for new people): what they replaced, so an open editor with no edits since takes them */
   rewrittenFrom?: string
   /** latest acknowledged edit revision on each side; failed text is retained in main and overlaid above */

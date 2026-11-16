@@ -685,5 +685,9 @@
   "Clear": "I-clear",
   "Reading {title} {others}…": "Binabasa ang {title} {others}…",
   "Searched {name}": "Hinanap sa {name}",
-  "Searched all meetings": "Hinanap sa lahat ng pulong"
+  "Searched all meetings": "Hinanap sa lahat ng pulong",
+  "Edit line": "I-edit ang linya",
+  "Restore original": "Ibalik ang orihinal",
+  "Edited. Heard as “{text}”": "Na-edit. Narinig bilang “{text}”",
+  "Transcript corrected. Regenerate summary?": "Naitama ang transcript. Gawin ulit ang buod?"
 }

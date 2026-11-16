@@ -16,6 +16,7 @@ import { rememberedScroll, useScrollMemory } from '../useScrollMemory'
 import { followGlide, scrollBehavior } from '../motion'
 import { followTarget, inView } from '../../../shared/follow'
 import { afterFinal, joinWords } from '../../../shared/liveWords'
+import { InlineError } from './InlineError'
 
 type Line = Omit<Segment, 'id'> & { id?: number }
 const key = (l: { track: string; startMs: number }) => `${l.track}:${l.startMs}`
@@ -54,7 +55,9 @@ function useLines(id: string) {
     })
     return () => { active = false; off(); offSpeakers() }
   }, [id])
-  return { lines, live, loaded }
+  /** a line changed here at once (a correction), before the saved lines come back */
+  const patch = useCallback((k: string, change: Partial<Line>) => setLines((cur) => cur.map((l) => (key(l) === k ? { ...l, ...change } : l))), [])
+  return { lines, live, loaded, patch }
 }
 
 /**
@@ -120,26 +123,75 @@ type RowProps = {
   /** arrived while watching: fades in, or settles in place where live words stood for it */
   arrived: 'fade' | 'settle' | null
   onPlay: (l: Line, e: MouseEvent) => void; onFocusLine: (k: string) => void
+  /** it can be corrected (a saved line, not while recording); editing: it is being corrected now */
+  editable: boolean; editing: boolean
+  onEdit: (k: string) => void
+  /** refocus: the field had the focus (Enter, Esc), so the line takes it back */
+  onSave: (l: Line, text: string, refocus: boolean) => void; onCancel: (l: Line, refocus: boolean) => void; onRestore: (l: Line, refocus: boolean) => void
+}
+
+/**
+ * A line being corrected: the same words in the same place, now a text field. Enter or leaving it saves, Esc puts it
+ * back as it was. A line corrected before can be put back as speech recognition heard it.
+ */
+function LineEditor({ line, onSave, onCancel, onRestore }: Pick<RowProps, 'onSave' | 'onCancel' | 'onRestore'> & { line: Line }) {
+  const field = useRef<HTMLSpanElement>(null)
+  const restore = useRef<HTMLButtonElement>(null)
+  const done = useRef(false)
+  useLayoutEffect(() => {
+    const el = field.current
+    if (!el) return
+    el.textContent = line.text
+    el.focus({ preventScroll: true })
+    const range = document.createRange()
+    range.selectNodeContents(el)
+    const selection = window.getSelection()
+    selection?.removeAllRanges(); selection?.addRange(range)
+  }, [])
+  const finish = (how: 'save' | 'cancel' | 'restore', refocus: boolean) => {
+    if (done.current) return
+    done.current = true
+    if (how === 'save') onSave(line, field.current?.textContent ?? '', refocus)
+    else if (how === 'cancel') onCancel(line, refocus)
+    else onRestore(line, refocus)
+  }
+  // focus moving between the field and its restore button is still editing
+  const left = (to: EventTarget | null) => { if (to !== field.current && to !== restore.current) finish('save', false) }
+  const escape = (e: KeyboardEvent<HTMLElement>) => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); finish('cancel', true) } }
+  return <>
+    <span ref={field} data-testid="transcript-editor" role="textbox" aria-label={t('Edit line')} contentEditable="plaintext-only" suppressContentEditableWarning spellCheck dir="auto" className="line-editor"
+      onKeyDown={(e) => {
+        if (e.nativeEvent.isComposing) { e.stopPropagation(); return }
+        if (e.key === 'Enter') { e.stopPropagation(); e.preventDefault(); finish('save', true) }
+        else escape(e)
+      }}
+      onBlur={(e) => left(e.relatedTarget)} />
+    {line.originalText != null && <button ref={restore} type="button" data-testid="transcript-restore" className="ghost-btn line-restore"
+      onMouseDown={(e) => e.preventDefault()} onBlur={(e) => left(e.relatedTarget)} onKeyDown={escape}
+      onClick={(e) => finish('restore', e.detail === 0)}>{t('Restore original')}</button>}
+  </>
 }
 /**
  * One line of the transcript, a stretch of text in its bubble (who said it heads the turn). Drawn again only when what
  * it shows changes (a long meeting has thousands).
  */
-const Row = memo(function Row({ line: l, focused, name, query, playing, playable, focusable, arrived, onPlay, onFocusLine }: RowProps) {
+const Row = memo(function Row({ line: l, focused, name, query, playing, playable, focusable, arrived, onPlay, onFocusLine, editable, editing, onEdit, onSave, onCancel, onRestore }: RowProps) {
   // memo skips it otherwise when the language changes
   useLanguage()
   if (window.yogurt.fake) (window as unknown as { __rowRenders?: number }).__rowRenders = ((window as unknown as { __rowRenders?: number }).__rowRenders ?? 0) + 1
-  const k = key(l), time = clock(l.startMs)
+  const k = key(l), time = clock(l.startMs), edited = l.originalText != null
   return (
     <span data-key={k} data-testid="transcript-line" data-track={l.track} data-start={l.startMs} data-playing={playing || undefined}
-      role={playable ? 'button' : undefined} aria-label={playable ? t('Play from {time}, {name}: {text}', { time, name, text: l.text }) : undefined}
-      tabIndex={playable ? (focusable ? 0 : -1) : undefined} onFocus={(e) => { if (e.target === e.currentTarget) onFocusLine(k) }}
-      onClick={(e) => onPlay(l, e)} title={time}
-      data-hidden={l.hidden || undefined} data-focused={focused || undefined}
-      className={`line ${arrived === 'fade' ? 'line-in' : arrived === 'settle' ? 'line-settle' : ''} ${playable ? 'line-playable cursor-pointer' : ''}`}>
-      <span data-testid="transcript-text">
+      role={playable && !editing ? 'button' : undefined} aria-label={playable && !editing ? t('Play from {time}, {name}: {text}', { time, name, text: l.text }) : undefined}
+      tabIndex={playable || editable ? (focusable ? 0 : -1) : undefined} onFocus={(e) => { if (e.target === e.currentTarget) onFocusLine(k) }}
+      aria-keyshortcuts={editable && !editing ? 'F2' : undefined}
+      onClick={(e) => onPlay(l, e)} onDoubleClick={editable && !editing ? () => onEdit(k) : undefined}
+      title={editing ? undefined : edited ? `${time} · ${t('Edited. Heard as “{text}”', { text: l.originalText! })}` : time}
+      data-hidden={l.hidden || undefined} data-focused={focused || undefined} data-edited={edited || undefined} data-editing={editing || undefined}
+      className={`line ${arrived === 'fade' ? 'line-in' : arrived === 'settle' ? 'line-settle' : ''} ${playable && !editing ? 'line-playable cursor-pointer' : ''}`}>
+      {editing ? <LineEditor line={l} onSave={onSave} onCancel={onCancel} onRestore={onRestore} /> : <span data-testid="transcript-text" className={edited ? 'line-edited' : undefined}>
         {query ? markWords(l.text, query).map((p, i) => (p.hit ? <mark key={i} className="search-mark">{p.text}</mark> : <span key={i}>{p.text}</span>)) : l.text}
-      </span>
+      </span>}
       <time data-testid="transcript-time" className="sr-only">{time}</time>
     </span>
   )
@@ -154,7 +206,7 @@ export function Transcript({ id, recording, inline = false, active = true, onClo
   /** a line to show and mark (an answer's source): ms into the meeting; seq: each time it is asked for */
   focus?: { ms: number; match?: string; seq: number }
 }) {
-  const { lines: allLines, live, loaded } = useLines(id)
+  const { lines: allLines, live, loaded, patch } = useLines(id)
   const loadingPhase = useLoadingState(!loaded)
   const { live: liveSaid, previewed } = useLive(id, recording)
   // the mic's copy of the call (hidden as an echo) never shows
@@ -293,12 +345,43 @@ export function Transcript({ id, recording, inline = false, active = true, onClo
   playableRef.current = playable
   const onPlay = useCallback((l: Line, e: MouseEvent) => {
     // a button, or text being selected to copy, is not a request to play
-    if (!playableRef.current || (e.target as HTMLElement).closest('button, input, form') || window.getSelection()?.toString()) return
+    if (!playableRef.current || (e.target as HTMLElement).closest('button, input, form, [contenteditable]') || window.getSelection()?.toString()) return
     follow()
     player.current?.playFrom(l.startMs)
   }, [follow])
 
   const shownLines = useMemo(() => filterLines(lines, query), [lines, query])
+
+  // a line corrected by hand (speech recognition misheard it): never while recording, its lines still change then
+  const editable = loaded && !recording
+  const [editingKey, setEditingKey] = useState<string>()
+  const [editFailed, setEditFailed] = useState(false)
+  useEffect(() => { setEditingKey(undefined); setEditFailed(false) }, [id, recording])
+  const endEdit = useCallback((l: Line, refocus: boolean) => {
+    setEditingKey(undefined)
+    if (refocus) requestAnimationFrame(() => list.current?.querySelector<HTMLElement>(`[data-key="${CSS.escape(key(l))}"]`)?.focus({ preventScroll: true }))
+  }, [])
+  /** shown at once; put back if it wasn't saved */
+  const change = useCallback((l: Line, next: Pick<Line, 'text' | 'originalText'>, save: (segmentId: number) => Promise<string>) => {
+    if (l.id == null) return
+    const before = { text: l.text, originalText: l.originalText }
+    patch(key(l), next)
+    const failed = () => { patch(key(l), before); setEditFailed(true) }
+    save(l.id).then((r) => { if (r === 'saved' || r === 'unchanged') setEditFailed(false); else failed() }, failed)
+  }, [patch])
+  const onSave = useCallback((l: Line, raw: string, refocus: boolean) => {
+    endEdit(l, refocus)
+    const text = raw.replace(/\s+/g, ' ').trim()
+    // blank is no correction: the line stays as it was
+    if (!text || text === l.text) return
+    const original = l.originalText ?? l.text
+    change(l, { text, originalText: text === original ? undefined : original }, (segmentId) => window.yogurt.transcript.edit(id, segmentId, text))
+  }, [id, endEdit, change])
+  const onRestore = useCallback((l: Line, refocus: boolean) => {
+    endEdit(l, refocus)
+    if (l.originalText == null) return
+    change(l, { text: l.originalText, originalText: undefined }, (segmentId) => window.yogurt.transcript.restoreLine(id, segmentId))
+  }, [id, endEdit, change])
 
   // the line an answer pointed to: in the middle of the panel, marked, and the list's tab stop
   const [focusedKey, setFocusedKey] = useState<string>()
@@ -325,9 +408,13 @@ export function Transcript({ id, recording, inline = false, active = true, onClo
   const tabKey = focusKey ?? shownKey ?? (shownLines[0] && key(shownLines[0]))
   const onKeyDown = (e: KeyboardEvent<HTMLOListElement>) => {
     const row = (e.target as HTMLElement).closest<HTMLElement>('[data-testid="transcript-line"]')
-    if (!playable || !row || row !== e.target) return
+    if ((!playable && !editable) || !row || row !== e.target) return
     const i = shownLines.findIndex((l) => key(l) === row.dataset.key)
     if (i < 0) return
+    const line = shownLines[i]
+    // F2 corrects the line (Enter too, where Enter doesn't play it)
+    if (editable && line.id != null && !line.hidden && (e.key === 'F2' || (!playable && e.key === 'Enter'))) { e.preventDefault(); setEditingKey(key(line)); return }
+    if (!playable && e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') return
     const go = (j: number) => { const next = rowOf(key(shownLines[Math.max(0, Math.min(shownLines.length - 1, j))])); next?.focus(); next?.scrollIntoView({ block: 'nearest' }) }
     if (e.key === 'ArrowDown') { e.preventDefault(); go(i + 1) }
     else if (e.key === 'ArrowUp') { e.preventDefault(); go(i - 1) }
@@ -386,7 +473,8 @@ export function Transcript({ id, recording, inline = false, active = true, onClo
                       return (
                         <Fragment key={k}>{i > 0 && ' '}
                           <Row line={x} focused={k === focusedKey} name={who(x)} query={typed}
-                            playing={k === shownKey} playable={playable} focusable={k === tabKey} arrived={live.current.has(k) ? (previewed(x) ? 'settle' : 'fade') : null} onPlay={onPlay} onFocusLine={setFocusKey} />
+                            playing={k === shownKey} playable={playable} focusable={k === tabKey} arrived={live.current.has(k) ? (previewed(x) ? 'settle' : 'fade') : null} onPlay={onPlay} onFocusLine={setFocusKey}
+                            editable={editable && x.id != null && !x.hidden} editing={editable && k === editingKey} onEdit={setEditingKey} onSave={onSave} onCancel={endEdit} onRestore={onRestore} />
                         </Fragment>
                       )
                     })}
@@ -400,6 +488,11 @@ export function Transcript({ id, recording, inline = false, active = true, onClo
           <button data-testid="transcript-latest" onClick={toLatest} className="absolute bottom-3 start-1/2 flex -translate-x-1/2 items-center gap-1 rounded-md border border-line bg-float px-3 py-1 text-xs shadow-[var(--shadow)] rtl:translate-x-1/2">
             <ArrowDown size={12} aria-hidden="true" />{t('Latest')}
           </button>
+        )}
+        {editFailed && (
+          <InlineError testId="transcript-edit-failed" className="absolute bottom-3 start-1/2 -translate-x-1/2 rtl:translate-x-1/2">
+            <span>{t("Couldn't save your changes")}</span>
+          </InlineError>
         )}
         {!recording && audioOn && away && playingShown && (
           <button data-testid="transcript-follow" onClick={backToPlaying} className="absolute bottom-3 start-1/2 flex -translate-x-1/2 items-center gap-1 rounded-md border border-line bg-float px-3 py-1 text-xs shadow-[var(--shadow)] rtl:translate-x-1/2">

@@ -685,5 +685,9 @@
   "Clear": "Tøm",
   "Reading {title} {others}…": "Leser {title} {others}…",
   "Searched {name}": "Søkte i {name}",
-  "Searched all meetings": "Søkte i alle møter"
+  "Searched all meetings": "Søkte i alle møter",
+  "Edit line": "Rediger linje",
+  "Restore original": "Gjenopprett originalen",
+  "Edited. Heard as “{text}”": "Redigert. Hørt som «{text}»",
+  "Transcript corrected. Regenerate summary?": "Transkripsjonen er rettet. Lage sammendraget på nytt?"
 }

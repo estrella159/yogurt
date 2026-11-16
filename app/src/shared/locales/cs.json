@@ -716,5 +716,9 @@
   "Clear": "Vymazat",
   "Reading {title} {others}…": "Čtení {title} {others}…",
   "Searched {name}": "Prohledáno {name}",
-  "Searched all meetings": "Prohledány všechny schůzky"
+  "Searched all meetings": "Prohledány všechny schůzky",
+  "Edit line": "Upravit řádek",
+  "Restore original": "Obnovit původní",
+  "Edited. Heard as “{text}”": "Upraveno. Slyšeno jako „{text}“",
+  "Transcript corrected. Regenerate summary?": "Přepis byl opraven. Vytvořit souhrn znovu?"
 }

@@ -389,7 +389,11 @@ html.widget { --pill:#232326;--pill-ink:#F7F7FA;--accent:#B780FF;--pill-accent:v
 }
 .line-playable { transition: background-color var(--dur-micro) ease; }
 .line-playable:hover { background: color-mix(in srgb, var(--line) 55%, transparent); }
-.line-playable:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.line-playable:focus-visible, .line[tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* a line corrected by hand: a quiet dotted underline; while it is corrected, the same text in a field with a soft ring */
+.line-edited { text-decoration: underline dotted color-mix(in srgb, var(--muted) 70%, transparent); text-underline-offset: 3px; }
+.line-editor { border-radius: 4px; outline: none; box-shadow: 0 0 0 1px var(--accent); background: var(--bg); cursor: text; white-space: pre-wrap; }
+.line-restore { margin-inline-start: 6px; padding: 0 6px; font-size: 12px; vertical-align: baseline; }
 /* the line being played: the accent's soft tint with a bar at its start (like a live meeting in the agenda), its time
    shown in the accent, and the name of its turn too */
 [data-playing] { position: relative; background: var(--playback-bg);color:var(--playback-ink);box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 55%,transparent); }

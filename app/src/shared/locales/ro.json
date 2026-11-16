@@ -702,5 +702,9 @@
   "Clear": "Șterge",
   "Reading {title} {others}…": "Se citesc „{title}” {others}…",
   "Searched {name}": "Căutat în {name}",
-  "Searched all meetings": "Căutat în toate întâlnirile"
+  "Searched all meetings": "Căutat în toate întâlnirile",
+  "Edit line": "Editați rândul",
+  "Restore original": "Restaurați originalul",
+  "Edited. Heard as “{text}”": "Editat. Auzit ca „{text}”",
+  "Transcript corrected. Regenerate summary?": "Transcrierea a fost corectată. Regenerați rezumatul?"
 }

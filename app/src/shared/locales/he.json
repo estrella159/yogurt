@@ -695,5 +695,9 @@
   "Clear": "נקה",
   "Reading {title} {others}…": "קורא את {title} {others}…",
   "Searched {name}": "בוצע חיפוש ב־{name}",
-  "Searched all meetings": "בוצע חיפוש בכל הפגישות"
+  "Searched all meetings": "בוצע חיפוש בכל הפגישות",
+  "Edit line": "עריכת השורה",
+  "Restore original": "שחזור המקור",
+  "Edited. Heard as “{text}”": "נערך. נשמע כ־“{text}”",
+  "Transcript corrected. Regenerate summary?": "התמלול תוקן. ליצור מחדש את הסיכום?"
 }

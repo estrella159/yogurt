@@ -88,6 +88,8 @@ const api: YogurtApi = {
   transcript: {
     get: (id, o) => ipcRenderer.invoke('transcript:get', id, o),
     restore: (id, ids) => ipcRenderer.invoke('transcript:restore', id, ids),
+    edit: (id, segmentId, text) => ipcRenderer.invoke('transcript:edit', id, segmentId, text),
+    restoreLine: (id, segmentId) => ipcRenderer.invoke('transcript:restore-line', id, segmentId),
     onSegment: (cb) => {
       const on = (_e: unknown, seg: Parameters<typeof cb>[0]) => cb(seg)
       ipcRenderer.on('transcript:segment', on)

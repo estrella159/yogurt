@@ -71,6 +71,7 @@ import { hookConversations } from './library/conversations'
 import { hookShare } from './share'
 import { hookBackup } from './backupIpc'
 import { hookFolders } from './foldersIpc'
+import { hookTranscriptEdit } from './transcriptEditIpc'
 import { hookMcp } from './mcp'
 import { startedHidden } from './mcp/paths'
 import { deleteRecording } from './deleteRecording'
@@ -555,6 +556,14 @@ app.whenReady().then(() => {
     sendWidgetTranscript('transcript:speakers', id)
     notes.refresh(id)
   })
+  // a line corrected by hand, or put back as heard: the windows read the lines again, the library indexes it again,
+  // and the notes hear that they were written from the old words
+  hookTranscriptEdit({ store, busy: (id) => activeMeeting()?.id === id || resumingId === id, changed: (id) => {
+    win?.webContents.send('transcript:speakers', id)
+    sendWidgetTranscript('transcript:speakers', id)
+    void indexer.schedule()
+    notes.refresh(id)
+  } })
   // each meeting's audio lives in its own folder; a crash keeps what was recorded up to the last 5 s flush
   hookCapture({ dirOf: (id) => join(userDataDir(), 'meetings', id), onStart: onMeetingStart, onStop: onMeetingStop, speech: (id) => speechLocaleFor(id),
     mic: () => loadSettings(settingsFile).mic ?? null,

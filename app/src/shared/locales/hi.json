@@ -673,5 +673,9 @@
   "Clear": "साफ़ करें",
   "Reading {title} {others}…": "{title} {others} पढ़ी जा रही हैं…",
   "Searched {name}": "{name} में खोजा गया",
-  "Searched all meetings": "सभी मीटिंग में खोजा गया"
+  "Searched all meetings": "सभी मीटिंग में खोजा गया",
+  "Edit line": "पंक्ति संपादित करें",
+  "Restore original": "मूल वापस लाएँ",
+  "Edited. Heard as “{text}”": "संपादित। सुना गया “{text}”",
+  "Transcript corrected. Regenerate summary?": "ट्रांसक्रिप्ट सुधारा गया। सारांश फिर से बनाएँ?"
 }

@@ -713,5 +713,9 @@
   "Clear": "Очистить",
   "Reading {title} {others}…": "Читаем «{title}» {others}…",
   "Searched {name}": "Поиск в {name}",
-  "Searched all meetings": "Поиск по всем встречам"
+  "Searched all meetings": "Поиск по всем встречам",
+  "Edit line": "Изменить строку",
+  "Restore original": "Восстановить исходный текст",
+  "Edited. Heard as “{text}”": "Изменено. Распознано как «{text}»",
+  "Transcript corrected. Regenerate summary?": "Расшифровка исправлена. Пересоздать сводку?"
 }

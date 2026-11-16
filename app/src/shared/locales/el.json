@@ -688,5 +688,9 @@
   "Clear": "Εκκαθάριση",
   "Reading {title} {others}…": "Ανάγνωση {title} {others}…",
   "Searched {name}": "Αναζήτηση στο {name}",
-  "Searched all meetings": "Αναζήτηση σε όλες τις συναντήσεις"
+  "Searched all meetings": "Αναζήτηση σε όλες τις συναντήσεις",
+  "Edit line": "Επεξεργασία γραμμής",
+  "Restore original": "Επαναφορά αρχικού",
+  "Edited. Heard as “{text}”": "Επεξεργασμένο. Ακούστηκε ως «{text}»",
+  "Transcript corrected. Regenerate summary?": "Η απομαγνητοφώνηση διορθώθηκε. Νέα δημιουργία σύνοψης;"
 }

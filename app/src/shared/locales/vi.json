@@ -643,5 +643,9 @@
   "Clear": "Xóa",
   "Reading {title} {others}…": "Đang đọc {title} {others}…",
   "Searched {name}": "Đã tìm trong {name}",
-  "Searched all meetings": "Đã tìm trong tất cả cuộc họp"
+  "Searched all meetings": "Đã tìm trong tất cả cuộc họp",
+  "Edit line": "Sửa dòng",
+  "Restore original": "Khôi phục bản gốc",
+  "Edited. Heard as “{text}”": "Đã sửa. Nghe thành “{text}”",
+  "Transcript corrected. Regenerate summary?": "Bản chép lời đã được sửa. Tạo lại tóm tắt?"
 }

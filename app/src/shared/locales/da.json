@@ -685,5 +685,9 @@
   "Clear": "Ryd",
   "Reading {title} {others}…": "Læser {title} {others}…",
   "Searched {name}": "Søgte i {name}",
-  "Searched all meetings": "Søgte i alle møder"
+  "Searched all meetings": "Søgte i alle møder",
+  "Edit line": "Rediger linje",
+  "Restore original": "Gendan original",
+  "Edited. Heard as “{text}”": "Redigeret. Hørt som “{text}”",
+  "Transcript corrected. Regenerate summary?": "Transskriptionen er rettet. Lav resuméet igen?"
 }

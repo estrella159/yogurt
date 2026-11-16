@@ -673,5 +673,9 @@
   "Clear": "Törlés",
   "Reading {title} {others}…": "„{title}” {others} olvasása…",
   "Searched {name}": "{name} átvizsgálva",
-  "Searched all meetings": "Összes megbeszélés átvizsgálva"
+  "Searched all meetings": "Összes megbeszélés átvizsgálva",
+  "Edit line": "Sor szerkesztése",
+  "Restore original": "Eredeti visszaállítása",
+  "Edited. Heard as “{text}”": "Szerkesztve. Így hallatszott: „{text}”",
+  "Transcript corrected. Regenerate summary?": "Az átirat javítva. Újra elkészíted az összefoglalót?"
 }

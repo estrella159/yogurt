@@ -741,5 +741,9 @@
   "Clear": "مسح",
   "Reading {title} {others}…": "جارٍ قراءة {title} {others}…",
   "Searched {name}": "تم البحث في {name}",
-  "Searched all meetings": "تم البحث في كل الاجتماعات"
+  "Searched all meetings": "تم البحث في كل الاجتماعات",
+  "Edit line": "تحرير السطر",
+  "Restore original": "استعادة الأصل",
+  "Edited. Heard as “{text}”": "معدّل. سُمع: «{text}»",
+  "Transcript corrected. Regenerate summary?": "تم تصحيح النص. هل تريد إعادة إنشاء الملخص؟"
 }

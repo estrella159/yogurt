@@ -704,5 +704,9 @@
   "Clear": "Cancella",
   "Reading {title} {others}…": "Lettura di «{title}» {others}…",
   "Searched {name}": "Ricerca in {name}",
-  "Searched all meetings": "Ricerca in tutte le riunioni"
+  "Searched all meetings": "Ricerca in tutte le riunioni",
+  "Edit line": "Modifica riga",
+  "Restore original": "Ripristina originale",
+  "Edited. Heard as “{text}”": "Modificato. Sentito come “{text}”",
+  "Transcript corrected. Regenerate summary?": "Trascrizione corretta. Rigenerare il riepilogo?"
 }

@@ -685,5 +685,9 @@
   "Clear": "Wissen",
   "Reading {title} {others}…": "{title} {others} lezen…",
   "Searched {name}": "Gezocht in {name}",
-  "Searched all meetings": "Gezocht in alle vergaderingen"
+  "Searched all meetings": "Gezocht in alle vergaderingen",
+  "Edit line": "Regel wijzigen",
+  "Restore original": "Origineel herstellen",
+  "Edited. Heard as “{text}”": "Gewijzigd. Gehoord als ‘{text}’",
+  "Transcript corrected. Regenerate summary?": "Transcript gecorrigeerd. Samenvatting opnieuw maken?"
 }

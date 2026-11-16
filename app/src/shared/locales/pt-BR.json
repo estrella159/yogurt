@@ -701,5 +701,9 @@
   "Clear": "Limpar",
   "Reading {title} {others}…": "Lendo {title} {others}…",
   "Searched {name}": "Pesquisa em {name}",
-  "Searched all meetings": "Pesquisa em todas as reuniões"
+  "Searched all meetings": "Pesquisa em todas as reuniões",
+  "Edit line": "Editar linha",
+  "Restore original": "Restaurar original",
+  "Edited. Heard as “{text}”": "Editado. Ouvido como “{text}”",
+  "Transcript corrected. Regenerate summary?": "A transcrição foi corrigida. Gerar o resumo de novo?"
 }

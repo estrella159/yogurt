@@ -421,6 +421,13 @@ export function Note({ id, onTitleChange, at, folderSuggestion, onSource, onResu
               <button data-testid="note-people-write-again" onClick={writeAgain} className="workspace-button primary">{t('Regenerate summary')}</button>
             </div>
           )}
+          {/* lines corrected in the transcript after the summary was written from them: offered, never done on its own */}
+          {primary === 'notes' && shown === 'enhanced' && notes.status === 'done' && notes.transcriptChanged && !notes.peopleChanged && !confirming && (
+            <div data-testid="note-transcript-changed" className="pointer-events-auto mx-auto mt-3 flex w-fit max-w-[calc(100%-32px)] flex-wrap items-center gap-3 rounded-xl border border-line bg-float px-4 py-2 text-[13px] shadow-[var(--shadow)]">
+              <span>{t('Transcript corrected. Regenerate summary?')}</span>
+              <button data-testid="note-transcript-write-again" onClick={writeAgain} className="workspace-button primary">{t('Regenerate summary')}</button>
+            </div>
+          )}
           {confirming && (
             <div data-testid="note-confirm" role="alertdialog" aria-label={t('Regenerate summary?')} aria-describedby="note-rewrite-description"
               onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); dismissRewrite() } }}

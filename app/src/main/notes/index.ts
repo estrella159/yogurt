@@ -21,6 +21,8 @@ const DRAFT_EVERY_MS = 50
  */
 export function hookNotes(p: {
   store: Pick<Store, 'meeting' | 'notes' | 'setNotes' | 'writtenWith' | 'setWrittenWith' | 'segments' | 'updateMeeting' | 'unenhancedMeetings'>
+    // lines corrected by hand after the notes were written: the notes say so (a hint, never written again on their own)
+    & Partial<Pick<Store, 'transcriptEditedAt' | 'notesTranscriptAt' | 'setNotesTranscriptAt'>>
   queue: Queue
   model: Pick<NotesModel, 'llm'> & Partial<Pick<NotesModel, 'needsLoad'>>
   /** Windows and Linux: say when the notes wait for the model to load (a Mac shows what it always did) */
@@ -66,13 +68,16 @@ export function hookNotes(p: {
     return written && was != null && was !== stamp(p.store.meeting(id)?.attendees ?? [])
   }
 
+  /** the transcript was corrected by hand after the enhanced notes were written from it */
+  const transcriptChanged = (id: string, written: boolean) => written && (p.store.transcriptEditedAt?.(id) ?? 0) > (p.store.notesTranscriptAt?.(id) ?? 0)
+
   /** out of date, unless they are being written again on their own right now (then no hint) */
   const view = (id: string): NoteView => {
     const n = currentNotes(id)
     const l = live.get(id)
     const saved = edits.get(id)
     const saves = saved && Object.fromEntries(Object.entries(saved).map(([side, edit]) => [side, { revision: edit.revision, status: edit.status, ...(edit.reason ? { reason: edit.reason } : {}) }]))
-    return { meetingId: id, mine: n.mine, enhanced: n.enhanced, edited: n.edited, status: l?.status ?? (n.enhanced != null ? 'done' : 'idle'), draft: l?.draft ?? '', peopleChanged: peopleChanged(id, n.enhanced != null) && !rewriteTimers.has(id) && !rewriting.has(id), ...(l?.part ? { part: l.part } : {}), ...(l?.step ? { step: l.step } : {}), ...(saves ? { saves } : {}) }
+    return { meetingId: id, mine: n.mine, enhanced: n.enhanced, edited: n.edited, status: l?.status ?? (n.enhanced != null ? 'done' : 'idle'), draft: l?.draft ?? '', peopleChanged: peopleChanged(id, n.enhanced != null) && !rewriteTimers.has(id) && !rewriting.has(id), ...(!l && transcriptChanged(id, n.enhanced != null) ? { transcriptChanged: true } : {}), ...(l?.part ? { part: l.part } : {}), ...(l?.step ? { step: l.step } : {}), ...(saves ? { saves } : {}) }
   }
   const set = (id: string, status: NoteStatus, draft = '', part?: { part: number; of: number }, step?: 'loading') => { live.set(id, { status, draft, part, step }); p.send(view(id)) }
 
@@ -118,6 +123,8 @@ export function hookNotes(p: {
     if (!m || m.state === 'recording' || resuming.has(id)) return
     const was = currentNotes(id)
     const mine = was.mine
+    // the hand edits these notes are written with: one made while they are written still marks them out of date
+    const transcriptAt = p.store.transcriptEditedAt?.(id) ?? 0
     const segments = p.store.segments(id)
     // nothing said and nothing typed: there is nothing to write up
     if (!segments.length && !mine.trim()) { if (!quiet) finish(m, 'empty'); return }
@@ -153,6 +160,7 @@ export function hookNotes(p: {
         stampBefore.set(id, p.store.writtenWith(id))
         p.store.setNotes(id, { enhanced: md, edited: false })
         p.store.setWrittenWith(id, used.stamp)
+        p.store.setNotesTranscriptAt?.(id, transcriptAt)
         p.send({ ...view(id), rewrittenFrom: was.enhanced ?? '' })
         queueTitle(id, askTitle, m.attendees)
         p.summarized?.(id)
@@ -162,6 +170,7 @@ export function hookNotes(p: {
       // the person's own notes stay as they typed them, even if they typed on while this was written
       p.store.setNotes(id, { enhanced: md, edited: false })
       p.store.setWrittenWith(id, used.stamp)
+      p.store.setNotesTranscriptAt?.(id, transcriptAt)
       finish(m, 'done')
       queueTitle(id, askTitle, m.attendees)
       p.summarized?.(id)

@@ -643,5 +643,9 @@
   "Clear": "지우기",
   "Reading {title} {others}…": "‘{title}’ {others} 읽는 중…",
   "Searched {name}": "{name}에서 검색함",
-  "Searched all meetings": "모든 회의에서 검색함"
+  "Searched all meetings": "모든 회의에서 검색함",
+  "Edit line": "줄 편집",
+  "Restore original": "원래대로 복원",
+  "Edited. Heard as “{text}”": "편집됨. 인식된 내용: “{text}”",
+  "Transcript corrected. Regenerate summary?": "녹취록이 수정되었어요. 요약을 다시 만들까요?"
 }

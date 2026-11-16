@@ -685,5 +685,9 @@
   "Clear": "Zurücksetzen",
   "Reading {title} {others}…": "„{title}“ {others} werden gelesen …",
   "Searched {name}": "{name} durchsucht",
-  "Searched all meetings": "Alle Besprechungen durchsucht"
+  "Searched all meetings": "Alle Besprechungen durchsucht",
+  "Edit line": "Zeile bearbeiten",
+  "Restore original": "Original wiederherstellen",
+  "Edited. Heard as “{text}”": "Bearbeitet. Verstanden als „{text}“",
+  "Transcript corrected. Regenerate summary?": "Transkript korrigiert. Zusammenfassung neu erstellen?"
 }

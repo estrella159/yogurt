@@ -78,16 +78,18 @@ export class Library {
   constructor(private db: DatabaseSync) {}
 
   /**
-   * Finished meetings whose chunks are missing or were made from something else: their lines (shown ones), title or
-   * people changed since. The signature is a hash of all that, so the check is one query, however many meetings.
+   * Finished meetings whose chunks are missing or were made from something else: their lines (shown ones, corrections
+   * by hand too), title or people changed since. The signature is a hash of all that, so the check is one query, however many meetings.
    */
   stale(): Array<{ meetingId: string; signature: string }> {
     const rows = this.db.prepare(`SELECT m.id AS id, m.title AS title, m.attendees AS attendees, count(s.id) AS n, coalesce(sum(length(s.text)), 0) AS len,
-      coalesce(sum(s.start_ms), 0) AS st, coalesce(sum(length(coalesce(s.speaker, ''))), 0) AS sp, ls.signature AS have
+      coalesce(sum(s.start_ms), 0) AS st, coalesce(sum(length(coalesce(s.speaker, ''))), 0) AS sp, coalesce(max(s.edited_at), 0) AS ed, ls.signature AS have
       FROM meetings m LEFT JOIN segments s ON s.meeting_id = m.id AND s.hidden = 0 LEFT JOIN library_sources ls ON ls.meeting_id = m.id
       WHERE m.state IN ('done', 'stopped') AND m.trashed_at IS NULL GROUP BY m.id ORDER BY m.started_at DESC`).all() as Row[]
     return rows.flatMap((r) => {
-      const signature = createHash('sha1').update(`${r.n}:${r.len}:${r.st}:${r.sp}:${r.title}:${JSON.stringify(resolvePeople(this.db, JSON.parse(String(r.attendees))))}`).digest('hex')
+      // a line corrected by hand can keep its length: its edit time counts too (left out when none, so nothing else is redone)
+      const edited = Number(r.ed) > 0 ? `:${r.ed}` : ''
+      const signature = createHash('sha1').update(`${r.n}:${r.len}:${r.st}:${r.sp}:${r.title}:${JSON.stringify(resolvePeople(this.db, JSON.parse(String(r.attendees))))}${edited}`).digest('hex')
       return r.have === signature ? [] : [{ meetingId: String(r.id), signature }]
     })
   }

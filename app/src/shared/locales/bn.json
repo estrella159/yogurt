@@ -673,5 +673,9 @@
   "Clear": "মুছুন",
   "Reading {title} {others}…": "{title} {others} পড়া হচ্ছে…",
   "Searched {name}": "{name}-এ খোঁজা হয়েছে",
-  "Searched all meetings": "সব মিটিংয়ে খোঁজা হয়েছে"
+  "Searched all meetings": "সব মিটিংয়ে খোঁজা হয়েছে",
+  "Edit line": "লাইন সম্পাদনা",
+  "Restore original": "আসলটি ফিরিয়ে আনুন",
+  "Edited. Heard as “{text}”": "সম্পাদিত। শোনা গিয়েছিল “{text}”",
+  "Transcript corrected. Regenerate summary?": "ট্রান্সক্রিপ্ট সংশোধিত হয়েছে। সারাংশ আবার তৈরি করবেন?"
 }

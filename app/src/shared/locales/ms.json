@@ -643,5 +643,9 @@
   "Clear": "Kosongkan",
   "Reading {title} {others}…": "Membaca {title} {others}…",
   "Searched {name}": "Dicari dalam {name}",
-  "Searched all meetings": "Dicari dalam semua mesyuarat"
+  "Searched all meetings": "Dicari dalam semua mesyuarat",
+  "Edit line": "Edit baris",
+  "Restore original": "Pulihkan asal",
+  "Edited. Heard as “{text}”": "Diedit. Didengar sebagai “{text}”",
+  "Transcript corrected. Regenerate summary?": "Transkrip dibetulkan. Jana semula ringkasan?"
 }

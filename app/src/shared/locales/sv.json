@@ -685,5 +685,9 @@
   "Clear": "Rensa",
   "Reading {title} {others}…": "Läser {title} {others}…",
   "Searched {name}": "Sökte i {name}",
-  "Searched all meetings": "Sökte i alla möten"
+  "Searched all meetings": "Sökte i alla möten",
+  "Edit line": "Redigera rad",
+  "Restore original": "Återställ original",
+  "Edited. Heard as “{text}”": "Redigerad. Hördes som ”{text}”",
+  "Transcript corrected. Regenerate summary?": "Transkriptionen har rättats. Skapa sammanfattningen igen?"
 }

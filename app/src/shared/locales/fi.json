@@ -691,5 +691,9 @@
   "Clear": "Tyhjennä",
   "Reading {title} {others}…": "Luetaan {title} {others}…",
   "Searched {name}": "Haettu kohteesta {name}",
-  "Searched all meetings": "Haettu kaikista kokouksista"
+  "Searched all meetings": "Haettu kaikista kokouksista",
+  "Edit line": "Muokkaa riviä",
+  "Restore original": "Palauta alkuperäinen",
+  "Edited. Heard as “{text}”": "Muokattu. Kuultiin ”{text}”",
+  "Transcript corrected. Regenerate summary?": "Litterointia korjattiin. Luodaanko yhteenveto uudelleen?"
 }

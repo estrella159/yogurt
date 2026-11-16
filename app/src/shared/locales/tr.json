@@ -673,5 +673,9 @@
   "Clear": "Temizle",
   "Reading {title} {others}…": "“{title}” {others} okunuyor…",
   "Searched {name}": "{name} içinde arandı",
-  "Searched all meetings": "Tüm toplantılarda arandı"
+  "Searched all meetings": "Tüm toplantılarda arandı",
+  "Edit line": "Satırı düzenle",
+  "Restore original": "Orijinali geri yükle",
+  "Edited. Heard as “{text}”": "Düzenlendi. “{text}” olarak duyuldu",
+  "Transcript corrected. Regenerate summary?": "Transkript düzeltildi. Özet yeniden oluşturulsun mu?"
 }

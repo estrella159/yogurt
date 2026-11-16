@@ -643,5 +643,9 @@
   "Clear": "清除",
   "Reading {title} {others}…": "正在读取“{title}”{others}…",
   "Searched {name}": "已搜索{name}",
-  "Searched all meetings": "已搜索所有会议"
+  "Searched all meetings": "已搜索所有会议",
+  "Edit line": "编辑此行",
+  "Restore original": "恢复原文",
+  "Edited. Heard as “{text}”": "已编辑。识别为“{text}”",
+  "Transcript corrected. Regenerate summary?": "文字记录已更正。要重新生成摘要吗？"
 }
